@@ -1,9 +1,13 @@
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://student-skill-tracker-api.vercel.app").replace(/\/+$/, "");
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://student-skill-tracker-api.vercel.app";
 
 async function request(path, options = {}) {
-  // Ensure path starts with a single slash
-  const cleanPath = `/${path.replace(/^\/+/, "")}`;
-  const res = await fetch(`${API_BASE}${cleanPath}`, {
+  // Use URL constructor for safe concatenation
+  // If API_BASE has a trailing slash, it's ignored if path starts with /
+  // We ensure API_BASE acts as the origin.
+  const url = new URL(path, API_BASE).toString();
+  
+  const res = await fetch(url, {
+ Riverside
     headers: { "Content-Type": "application/json", ...options.headers },
     ...options,
   });
