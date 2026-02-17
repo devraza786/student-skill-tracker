@@ -7,7 +7,6 @@ async function request(path, options = {}) {
   const url = new URL(path, API_BASE).toString();
   
   const res = await fetch(url, {
- Riverside
     headers: { "Content-Type": "application/json", ...options.headers },
     ...options,
   });
