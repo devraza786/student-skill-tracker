@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth";
 import { getSkills, createSkill, updateSkill, deleteSkill } from "@/lib/api";
 
 const CATEGORIES = ["Frontend", "Backend", "DevOps", "AI"];
 
 export default function SkillsPage() {
+  const { user } = useAuth();
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterCat, setFilterCat] = useState("");
@@ -116,9 +118,11 @@ export default function SkillsPage() {
             ))}
           </div>
           
-          <button className="btn btn-primary" onClick={() => handleOpenModal()} style={{ marginLeft: "auto" }}>
-            + Add Skill
-          </button>
+          {user?.role === "teacher" && (
+            <button className="btn btn-primary" onClick={() => handleOpenModal()} style={{ marginLeft: "auto" }}>
+              + Add Skill
+            </button>
+          )}
         </div>
       </div>
 
@@ -126,7 +130,7 @@ export default function SkillsPage() {
         <div className="empty-state">
           <div className="empty-state-icon">{search ? "🔎" : "⚡"}</div>
           <div className="empty-state-text">{search ? `No skill matches "${search}"` : "No skills found"}</div>
-          {!search && <button className="btn btn-primary" onClick={() => handleOpenModal()}>Add your first skill</button>}
+          {user?.role === "teacher" && !search && <button className="btn btn-primary" onClick={() => handleOpenModal()}>Add your first skill</button>}
           {search && <button className="btn btn-secondary" onClick={() => setSearch("")}>Clear search</button>}
         </div>
       ) : (
@@ -138,12 +142,19 @@ export default function SkillsPage() {
                 <span className={`badge ${sk.category.toLowerCase()}`}>{sk.category}</span>
               </div>
               <div className="data-card-actions">
-                <button className="btn btn-secondary btn-sm" onClick={() => handleOpenModal(sk)}>
-                  Edit
-                </button>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(sk.id)}>
-                  🗑️ Delete
-                </button>
+                {user?.role === "teacher" && (
+                  <>
+                    <button className="btn btn-secondary btn-sm" onClick={() => handleOpenModal(sk)}>
+                      Edit
+                    </button>
+                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(sk.id)}>
+                      🗑️ Delete
+                    </button>
+                  </>
+                )}
+                {user?.role === "student" && (
+                   <span className="badge">Read Only</span>
+                )}
               </div>
             </div>
           ))}

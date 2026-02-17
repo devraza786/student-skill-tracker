@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import students, skills, analytics
+from app.routes import students, skills, analytics, auth
 
 app = FastAPI(
     title="Student Skill Tracking & Analytics API",
@@ -8,6 +8,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,6 +20,7 @@ app.add_middleware(
 app.include_router(students.router)
 app.include_router(skills.router)
 app.include_router(analytics.router)
+app.include_router(auth.router)
 
 @app.get("/")
 def read_root():

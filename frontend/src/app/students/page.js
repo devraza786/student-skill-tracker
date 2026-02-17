@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth";
 import {
   getStudents,
   createStudent,
@@ -10,8 +11,10 @@ import {
 } from "@/lib/api";
 
 export default function StudentsPage() {
+  const { user } = useAuth();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editStudent, setEditStudent] = useState(null);
   const [toast, setToast] = useState(null);
@@ -77,6 +80,11 @@ export default function StudentsPage() {
     }
   }
 
+  const filteredStudents = students.filter(s => 
+    s.name.toLowerCase().includes(search.toLowerCase()) || 
+    s.email.toLowerCase().includes(search.toLowerCase())
+  );
+
   if (loading) return <div className="loading"><div className="spinner" /></div>;
 
   return (
@@ -87,21 +95,35 @@ export default function StudentsPage() {
       </div>
 
       <div className="section-header">
-        <span>{students.length} students</span>
-        <button className="btn btn-primary" onClick={openCreate}>
-          + Add Student
-        </button>
+        <div style={{ display: "flex", gap: "12px", alignItems: "center", flex: "1", maxWidth: "400px" }}>
+          <div style={{ position: "relative", width: "100%" }}>
+            <input 
+              className="form-input" 
+              placeholder="Search by name or email..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ paddingLeft: "36px" }}
+            />
+            <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", opacity: 0.5 }}>🔍</span>
+          </div>
+        </div>
+        {user?.role === "teacher" && (
+          <button className="btn btn-primary" onClick={openCreate}>
+            + Add Student
+          </button>
+        )}
       </div>
 
-      {students.length === 0 ? (
+      {filteredStudents.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">🎓</div>
-          <div className="empty-state-text">No students yet</div>
-          <button className="btn btn-primary" onClick={openCreate}>Add your first student</button>
+          <div className="empty-state-icon">{search ? "🔎" : "🎓"}</div>
+          <div className="empty-state-text">{search ? `No student matches "${search}"` : "No students yet"}</div>
+          {user?.role === "teacher" && !search && <button className="btn btn-primary" onClick={openCreate}>Add your first student</button>}
+          {search && <button className="btn btn-secondary" onClick={() => setSearch("")}>Clear search</button>}
         </div>
       ) : (
         <div className="data-grid">
-          {students.map((s) => (
+          {filteredStudents.map((s) => (
             <div key={s.id} className="data-card">
               <div className="data-card-header">
                 <div className="data-card-name">{s.name}</div>
@@ -125,12 +147,16 @@ export default function StudentsPage() {
                 <Link href={`/students/${s.id}`} className="btn btn-secondary btn-sm">
                   View Details
                 </Link>
-                <button className="btn btn-secondary btn-sm" onClick={() => openEdit(s)}>
-                  ✏️ Edit
-                </button>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s.id)}>
-                  🗑️
-                </button>
+                {user?.role === "teacher" && (
+                  <>
+                    <button className="btn btn-secondary btn-sm" onClick={() => openEdit(s)}>
+                      ✏️ Edit
+                    </button>
+                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s.id)}>
+                      🗑️
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}

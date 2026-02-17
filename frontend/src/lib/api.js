@@ -39,3 +39,7 @@ export const getAverageProficiency = (id) => request(`/analytics/students/${id}/
 export const getTopStudents = () => request("/analytics/top-students");
 export const getMostPopularSkill = () => request("/analytics/most-popular-skill");
 export const getJobReadyStudents = () => request("/analytics/job-ready-students");
+
+// Auth
+export const loginUser = (data) => request("/auth/login", { method: "POST", body: JSON.stringify(data) });
+export const registerUser = (data) => request("/auth/register", { method: "POST", body: JSON.stringify(data) });
