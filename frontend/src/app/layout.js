@@ -12,10 +12,60 @@ const navItems = [
   { href: "/skills", label: "Skills", icon: "⚡" },
 ];
 
-export default function RootLayout({ children }) {
+function AppShell({ children }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
+  return (
+    <ProtectedRoute>
+      <div className="app-layout">
+        <aside className="sidebar">
+          <div className="sidebar-logo">
+            <div className="sidebar-logo-icon">S</div>
+            <div className="sidebar-logo-text">
+              Skill<span>Track</span>
+            </div>
+          </div>
+          <nav className="sidebar-nav">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`sidebar-link ${pathname === item.href ? "active" : ""}`}
+              >
+                <span className="sidebar-link-icon">{item.icon}</span>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="sidebar-footer">
+            {user ? (
+              <div className="user-profile">
+                <div className="user-info">
+                  <div className="user-email">{user.email}</div>
+                  <div className="user-role badge">{user.role}</div>
+                </div>
+                <button className="btn btn-secondary btn-sm" style={{ width: "100%", marginTop: "12px" }} onClick={logout}>
+                  🚪 Logout
+                </button>
+              </div>
+            ) : (
+              <Link href="/login" className="btn btn-primary btn-sm" style={{ width: "100%", textAlign: "center", display: "block" }}>
+                🔑 Login
+              </Link>
+            )}
+          </div>
+        </aside>
+        <main className="main-content">
+          {children}
+        </main>
+      </div>
+    </ProtectedRoute>
+  );
+}
+
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
@@ -24,51 +74,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AuthProvider>
-          <ProtectedRoute>
-            <div className="app-layout">
-              <aside className="sidebar">
-                <div className="sidebar-logo">
-                  <div className="sidebar-logo-icon">S</div>
-                  <div className="sidebar-logo-text">
-                    Skill<span>Track</span>
-                  </div>
-                </div>
-                <nav className="sidebar-nav">
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`sidebar-link ${pathname === item.href ? "active" : ""}`}
-                    >
-                      <span className="sidebar-link-icon">{item.icon}</span>
-                      {item.label}
-                    </Link>
-                  ))}
-                </nav>
-
-                <div className="sidebar-footer">
-                  {user ? (
-                    <div className="user-profile">
-                      <div className="user-info">
-                        <div className="user-email">{user.email}</div>
-                        <div className="user-role badge">{user.role}</div>
-                      </div>
-                      <button className="btn btn-secondary btn-sm" style={{ width: "100%", marginTop: "12px" }} onClick={logout}>
-                        🚪 Logout
-                      </button>
-                    </div>
-                  ) : (
-                    <Link href="/login" className="btn btn-primary btn-sm" style={{ width: "100%", textAlign: "center", display: "block" }}>
-                      🔑 Login
-                    </Link>
-                  )}
-                </div>
-              </aside>
-              <main className="main-content">
-                {children}
-              </main>
-            </div>
-          </ProtectedRoute>
+          <AppShell>{children}</AppShell>
         </AuthProvider>
       </body>
     </html>

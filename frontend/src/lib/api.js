@@ -1,4 +1,4 @@
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://student-skill-tracker-api.vercel.app").replace(/\/$/, "");
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://student-skill-tracker-api.vercel.app").replace(/\/+$/, "");
 
 async function request(path, options = {}) {
   // Ensure path starts with / and remove any trailing slash

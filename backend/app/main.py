@@ -8,12 +8,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Disable strict slashes globally
+app.router.redirect_slashes = False
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
