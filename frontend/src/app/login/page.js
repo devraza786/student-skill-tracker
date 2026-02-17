@@ -32,6 +32,21 @@ export default function LoginPage() {
   return (
     <div className="auth-container">
       <div className="auth-card">
+        <div className="auth-tabs">
+          <button 
+            className={`auth-tab ${isLogin ? "active" : ""}`} 
+            onClick={() => setIsLogin(true)}
+          >
+            Login
+          </button>
+          <button 
+            className={`auth-tab ${!isLogin ? "active" : ""}`} 
+            onClick={() => setIsLogin(false)}
+          >
+            SignUp
+          </button>
+        </div>
+
         <h1 className="auth-title">{isLogin ? "Welcome Back" : "Create Account"}</h1>
         <p className="auth-subtitle">
           {isLogin ? "Login to your SkillTrack account" : "Join the skill tracking platform"}
@@ -81,13 +96,6 @@ export default function LoginPage() {
             {isLogin ? "Login" : "Sign Up"}
           </button>
         </form>
-
-        <button 
-          className="auth-switch-btn" 
-          onClick={() => setIsLogin(!isLogin)}
-        >
-          {isLogin ? "Need an account? Sign Up" : "Already have an account? Login"}
-        </button>
       </div>
 
       <style jsx>{`
@@ -98,23 +106,48 @@ export default function LoginPage() {
           min-height: 80vh;
         }
         .auth-card {
-          background: var(--card-bg);
+          background: var(--bg-secondary);
           padding: 40px;
           border-radius: 24px;
           width: 100%;
           max-width: 400px;
-          box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-          border: 1px solid var(--border-color);
+          box-shadow: var(--shadow-lg);
+          border: 1px solid var(--border);
+        }
+        .auth-tabs {
+          display: flex;
+          background: var(--bg-primary);
+          padding: 4px;
+          border-radius: 12px;
+          margin-bottom: 32px;
+        }
+        .auth-tab {
+          flex: 1;
+          padding: 10px;
+          border-radius: 10px;
+          border: none;
+          background: none;
+          color: var(--text-secondary);
+          font-weight: 600;
+          cursor: pointer;
+          transition: var(--transition);
+        }
+        .auth-tab.active {
+          background: var(--bg-card);
+          color: var(--text-primary);
+          box-shadow: var(--shadow-sm);
         }
         .auth-title {
-          font-size: 2rem;
+          font-size: 1.75rem;
           margin-bottom: 8px;
           text-align: center;
+          font-weight: 800;
         }
         .auth-subtitle {
           color: var(--text-secondary);
           text-align: center;
           margin-bottom: 32px;
+          font-size: 0.9rem;
         }
         .auth-form {
           display: flex;
@@ -128,24 +161,13 @@ export default function LoginPage() {
           margin-top: 10px;
         }
         .auth-error {
-          color: #ff4d4d;
-          background: rgba(255, 77, 77, 0.1);
+          color: #ff6b6b;
+          background: rgba(255, 107, 107, 0.1);
           padding: 12px;
           border-radius: 8px;
-          font-size: 0.9rem;
+          font-size: 0.85rem;
           text-align: center;
-        }
-        .auth-switch-btn {
-          background: none;
-          border: none;
-          color: var(--primary-color);
-          margin-top: 24px;
-          width: 100%;
-          cursor: pointer;
-          font-weight: 500;
-        }
-        .auth-switch-btn:hover {
-          text-decoration: underline;
+          border: 1px solid rgba(255, 107, 107, 0.2);
         }
       `}</style>
     </div>
