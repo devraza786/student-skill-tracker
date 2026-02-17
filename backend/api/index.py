@@ -38,4 +38,3 @@ def app(environ, start_response):
             "root_files": os.listdir('.') if os.path.exists('.') else "os_error"
         }
         return [json.dumps(error_data).encode('utf-8')]
- Riverside
