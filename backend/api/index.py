@@ -52,6 +52,7 @@ except Exception as boot_error:
             "sys_path": sys.path,
             "root_files": os.listdir('.') if os.path.exists('.') else "os_error"
         }
+        await send({
+            'type': 'http.response.body',
             'body': json.dumps(diag_data).encode('utf-8')
         })
- Riverside
