@@ -9,6 +9,7 @@ export default function SkillsPage() {
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterCat, setFilterCat] = useState("");
+  const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingSkill, setEditingSkill] = useState(null);
   const [toast, setToast] = useState(null);
@@ -71,6 +72,10 @@ export default function SkillsPage() {
     }
   }
 
+  const filteredSkills = skills.filter(sk => 
+    sk.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   if (loading) return <div className="loading"><div className="spinner" /></div>;
 
   return (
@@ -81,37 +86,52 @@ export default function SkillsPage() {
       </div>
 
       <div className="section-header">
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          <button
-            className={`btn btn-sm ${filterCat === "" ? "btn-primary" : "btn-secondary"}`}
-            onClick={() => setFilterCat("")}
-          >
-            All
-          </button>
-          {CATEGORIES.map((c) => (
+        <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap", width: "100%" }}>
+          <div style={{ position: "relative", flex: "1", minWidth: "200px" }}>
+            <input 
+              className="form-input" 
+              placeholder="Search skills by name..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ paddingLeft: "36px" }}
+            />
+            <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", opacity: 0.5 }}>🔍</span>
+          </div>
+          
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
             <button
-              key={c}
-              className={`btn btn-sm ${filterCat === c ? "btn-primary" : "btn-secondary"}`}
-              onClick={() => setFilterCat(c)}
+              className={`btn btn-sm ${filterCat === "" ? "btn-primary" : "btn-secondary"}`}
+              onClick={() => setFilterCat("")}
             >
-              {c}
+              All
             </button>
-          ))}
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                className={`btn btn-sm ${filterCat === c ? "btn-primary" : "btn-secondary"}`}
+                onClick={() => setFilterCat(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          
+          <button className="btn btn-primary" onClick={() => handleOpenModal()} style={{ marginLeft: "auto" }}>
+            + Add Skill
+          </button>
         </div>
-        <button className="btn btn-primary" onClick={() => handleOpenModal()}>
-          + Add Skill
-        </button>
       </div>
 
-      {skills.length === 0 ? (
+      {filteredSkills.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">⚡</div>
-          <div className="empty-state-text">No skills found</div>
-          <button className="btn btn-primary" onClick={() => handleOpenModal()}>Add your first skill</button>
+          <div className="empty-state-icon">{search ? "🔎" : "⚡"}</div>
+          <div className="empty-state-text">{search ? `No skill matches "${search}"` : "No skills found"}</div>
+          {!search && <button className="btn btn-primary" onClick={() => handleOpenModal()}>Add your first skill</button>}
+          {search && <button className="btn btn-secondary" onClick={() => setSearch("")}>Clear search</button>}
         </div>
       ) : (
         <div className="data-grid">
-          {skills.map((sk) => (
+          {filteredSkills.map((sk) => (
             <div key={sk.id} className="data-card">
               <div className="data-card-header">
                 <div className="data-card-name">{sk.name}</div>
@@ -170,7 +190,6 @@ export default function SkillsPage() {
           </div>
         </div>
       )}
- Riverside
 
       {toast && <div className={`toast ${toast.type}`}>{toast.msg}</div>}
     </>
