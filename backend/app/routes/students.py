@@ -8,7 +8,7 @@ router = APIRouter(
     tags=["Students"]
 )
 
-@router.post("/", response_model=schemas.StudentResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=schemas.StudentResponse, status_code=status.HTTP_201_CREATED)
 def create_student(student: schemas.StudentCreate):
     # Check for duplicate email
     response = database.supabase.table("students").select("*").eq("email", student.email).execute()
@@ -36,7 +36,7 @@ def create_student(student: schemas.StudentCreate):
         "skills": []
     }
 
-@router.get("/", response_model=List[schemas.StudentResponse])
+@router.get("", response_model=List[schemas.StudentResponse])
 def get_students():
     # Fetch students with their skills in one go if possible, or separately
     # Supabase supports joins via select filter

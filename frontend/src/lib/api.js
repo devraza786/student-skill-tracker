@@ -1,10 +1,9 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://student-skill-tracker-api.vercel.app/";
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://student-skill-tracker-api.vercel.app").replace(/\/$/, "");
 
 async function request(path, options = {}) {
-  // Use URL constructor for safe concatenation
-  // If API_BASE has a trailing slash, it's ignored if path starts with /
-  // We ensure API_BASE acts as the origin.
-  const url = new URL(path, API_BASE).toString();
+  // Ensure path starts with / and remove any trailing slash
+  const cleanPath = `/${path.replace(/^\//, "").split("?")[0].replace(/\/$/, "")}${path.includes("?") ? `?${path.split("?")[1]}` : ""}`;
+  const url = `${API_BASE}${cleanPath}`;
   
   const res = await fetch(url, {
     headers: { "Content-Type": "application/json", ...options.headers },
@@ -21,16 +20,16 @@ async function request(path, options = {}) {
 }
 
 // Students
-export const getStudents = () => request("/students/");
+export const getStudents = () => request("/students");
 export const getStudent = (id) => request(`/students/${id}`);
-export const createStudent = (data) => request("/students/", { method: "POST", body: JSON.stringify(data) });
+export const createStudent = (data) => request("/students", { method: "POST", body: JSON.stringify(data) });
 export const updateStudent = (id, data) => request(`/students/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const deleteStudent = (id) => request(`/students/${id}`, { method: "DELETE" });
 export const assignSkill = (studentId, data) => request(`/students/${studentId}/skills`, { method: "POST", body: JSON.stringify(data) });
 
 // Skills
-export const getSkills = (category) => request(`/skills/${category ? `?category=${category}` : ""}`);
-export const createSkill = (data) => request("/skills/", { method: "POST", body: JSON.stringify(data) });
+export const getSkills = (category) => request(category ? `/skills?category=${category}` : "/skills");
+export const createSkill = (data) => request("/skills", { method: "POST", body: JSON.stringify(data) });
 export const updateSkill = (id, data) => request(`/skills/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const deleteSkill = (id) => request(`/skills/${id}`, { method: "DELETE" });
 

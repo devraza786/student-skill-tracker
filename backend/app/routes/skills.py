@@ -8,7 +8,7 @@ router = APIRouter(
     tags=["Skills"]
 )
 
-@router.post("/", response_model=schemas.SkillResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=schemas.SkillResponse, status_code=status.HTTP_201_CREATED)
 def create_skill(skill: schemas.SkillCreate):
     new_skill_data = {
         "name": skill.name,
@@ -25,7 +25,7 @@ def create_skill(skill: schemas.SkillCreate):
     
     return response.data[0]
 
-@router.get("/", response_model=List[schemas.SkillResponse])
+@router.get("", response_model=List[schemas.SkillResponse])
 def get_skills(category: Optional[schemas.SkillCategory] = None):
     query = database.supabase.table("skills").select("*")
     if category:
