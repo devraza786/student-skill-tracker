@@ -3,38 +3,55 @@ import sys
 import traceback
 import json
 
-# Minimal dependency-free WSGI app for diagnostics
-def app(environ, start_response):
-    try:
-        # 1. Adjust Path
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        if base_dir not in sys.path:
-            sys.path.append(base_dir)
-        
-        # 2. Try to Import the real app
-        from app.main import app as real_app
-        
-        # 3. If we get here, the import worked!
-        # For simplicity, we'll just report success or handle the request if it's an ASGI app
-        # Vercel handles ASGI/WSGI automatically if assigned to 'app'
-        return real_app(environ, start_response)
+# Ensure the parent directory is in the path
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if base_dir not in sys.path:
+    sys.path.insert(0, base_dir)
 
-    except Exception as e:
-        # Something failed during boot
-        status = '500 Internal Server Error'
-        headers = [
-            ('Content-type', 'application/json'),
-            ('Access-Control-Allow-Origin', '*')
-        ]
-        start_response(status, headers)
+try:
+    from app.main import app as real_app
+    app = real_app
+except Exception as boot_error:
+    error_trace = traceback.format_exc()
+    
+    async def app(scope, receive, send):
+        if scope['type'] != 'http':
+            return
+
+        # Handle CORS Preflight (OPTIONS)
+        if scope['method'] == 'OPTIONS':
+            await send({
+                'type': 'http.response.start',
+                'status': 200,
+                'headers': [
+                    (b'access-control-allow-origin', b'*'),
+                    (b'access-control-allow-methods', b'*'),
+                    (b'access-control-allow-headers', b'*'),
+                    (b'access-control-max-age', b'86400'),
+                ]
+            })
+            await send({'type': 'http.response.body', 'body': b''})
+            return
+
+        # Handle normal requests with the diagnostic error
+        await send({
+            'type': 'http.response.start',
+            'status': 500,
+            'headers': [
+                (b'content-type', b'application/json'),
+                (b'access-control-allow-origin', b'*'),
+            ]
+        })
         
-        error_data = {
+        diag_data = {
             "diag_status": "CRASH_DURING_IMPORT",
-            "error": str(e),
-            "type": type(e).__name__,
-            "traceback": traceback.format_exc(),
+            "error": str(boot_error),
+            "type": type(boot_error).__name__,
+            "traceback": error_trace,
             "cwd": os.getcwd(),
             "sys_path": sys.path,
             "root_files": os.listdir('.') if os.path.exists('.') else "os_error"
         }
-        return [json.dumps(error_data).encode('utf-8')]
+            'body': json.dumps(diag_data).encode('utf-8')
+        })
+ Riverside
