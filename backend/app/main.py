@@ -19,7 +19,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
- Riverside
 
 app.include_router(students.router)
 app.include_router(skills.router)
