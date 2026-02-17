@@ -1,7 +1,9 @@
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://student-skill-tracker-api.vercel.app").replace(/\/$/, "");
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://student-skill-tracker-api.vercel.app").replace(/\/+$/, "");
 
 async function request(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
+  // Ensure path starts with a single slash
+  const cleanPath = `/${path.replace(/^\/+/, "")}`;
+  const res = await fetch(`${API_BASE}${cleanPath}`, {
     headers: { "Content-Type": "application/json", ...options.headers },
     ...options,
   });
