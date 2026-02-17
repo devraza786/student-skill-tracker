@@ -11,8 +11,8 @@ router = APIRouter(
 @router.post("/", response_model=schemas.StudentResponse, status_code=status.HTTP_201_CREATED)
 def create_student(student: schemas.StudentCreate):
     # Check for duplicate email
-    data, count = database.supabase.table("students").select("*").eq("email", student.email).execute()
-    if data[1]:
+    response = database.supabase.table("students").select("*").eq("email", student.email).execute()
+    if response.data:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     new_student_data = {
