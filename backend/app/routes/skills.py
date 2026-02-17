@@ -15,9 +15,13 @@ def create_skill(skill: schemas.SkillCreate):
         "category": skill.category
     }
     
-    response = database.supabase.table("skills").insert(new_skill_data).execute()
+    try:
+        response = database.supabase.table("skills").insert(new_skill_data).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create skill: {str(e)}")
+
     if not response.data:
-        raise HTTPException(status_code=500, detail="Failed to create skill")
+        raise HTTPException(status_code=500, detail="Failed to create skill: No data returned")
     
     return response.data[0]
 

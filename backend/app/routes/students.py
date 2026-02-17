@@ -21,9 +21,13 @@ def create_student(student: schemas.StudentCreate):
         "age": student.age
     }
     
-    response = database.supabase.table("students").insert(new_student_data).execute()
+    try:
+        response = database.supabase.table("students").insert(new_student_data).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create student: {str(e)}")
+
     if not response.data:
-        raise HTTPException(status_code=500, detail="Failed to create student")
+        raise HTTPException(status_code=500, detail="Failed to create student: No data returned")
     
     created_student = response.data[0]
     

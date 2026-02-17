@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://student-skill-tracker-api.vercel.app";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://student-skill-tracker-api.vercel.app/";
 
 async function request(path, options = {}) {
   // Use URL constructor for safe concatenation
