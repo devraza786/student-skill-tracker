@@ -22,6 +22,10 @@ class SkillResponse(SkillBase):
     class Config:
         from_attributes = True
 
+class SkillUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1)
+    category: Optional[SkillCategory] = None
+
 # --- Student Skill Association Schemas ---
 class StudentSkillBase(BaseModel):
     skill_id: int

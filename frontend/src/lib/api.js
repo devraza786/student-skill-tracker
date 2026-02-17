@@ -31,6 +31,7 @@ export const assignSkill = (studentId, data) => request(`/students/${studentId}/
 // Skills
 export const getSkills = (category) => request(`/skills/${category ? `?category=${category}` : ""}`);
 export const createSkill = (data) => request("/skills/", { method: "POST", body: JSON.stringify(data) });
+export const updateSkill = (id, data) => request(`/skills/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const deleteSkill = (id) => request(`/skills/${id}`, { method: "DELETE" });
 
 // Analytics

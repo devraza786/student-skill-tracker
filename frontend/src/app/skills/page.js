@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSkills, createSkill, deleteSkill } from "@/lib/api";
+import { getSkills, createSkill, updateSkill, deleteSkill } from "@/lib/api";
 
 const CATEGORIES = ["Frontend", "Backend", "DevOps", "AI"];
 
@@ -10,6 +10,7 @@ export default function SkillsPage() {
   const [loading, setLoading] = useState(true);
   const [filterCat, setFilterCat] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [editingSkill, setEditingSkill] = useState(null);
   const [toast, setToast] = useState(null);
   const [form, setForm] = useState({ name: "", category: "Backend" });
 
@@ -31,13 +32,28 @@ export default function SkillsPage() {
     setTimeout(() => setToast(null), 3000);
   }
 
-  async function handleCreate(e) {
+  function handleOpenModal(skill = null) {
+    if (skill) {
+      setEditingSkill(skill);
+      setForm({ name: skill.name, category: skill.category });
+    } else {
+      setEditingSkill(null);
+      setForm({ name: "", category: "Backend" });
+    }
+    setShowModal(true);
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
     try {
-      await createSkill(form);
-      showToast("Skill created!");
+      if (editingSkill) {
+        await updateSkill(editingSkill.id, form);
+        showToast("Skill updated!");
+      } else {
+        await createSkill(form);
+        showToast("Skill created!");
+      }
       setShowModal(false);
-      setForm({ name: "", category: "Backend" });
       load();
     } catch (err) {
       showToast(err.message, "error");
@@ -82,7 +98,7 @@ export default function SkillsPage() {
             </button>
           ))}
         </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+        <button className="btn btn-primary" onClick={() => handleOpenModal()}>
           + Add Skill
         </button>
       </div>
@@ -91,7 +107,7 @@ export default function SkillsPage() {
         <div className="empty-state">
           <div className="empty-state-icon">⚡</div>
           <div className="empty-state-text">No skills found</div>
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>Add your first skill</button>
+          <button className="btn btn-primary" onClick={() => handleOpenModal()}>Add your first skill</button>
         </div>
       ) : (
         <div className="data-grid">
@@ -102,6 +118,9 @@ export default function SkillsPage() {
                 <span className={`badge ${sk.category.toLowerCase()}`}>{sk.category}</span>
               </div>
               <div className="data-card-actions">
+                <button className="btn btn-secondary btn-sm" onClick={() => handleOpenModal(sk)}>
+                  Edit
+                </button>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDelete(sk.id)}>
                   🗑️ Delete
                 </button>
@@ -115,8 +134,8 @@ export default function SkillsPage() {
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">Add Skill</h2>
-            <form onSubmit={handleCreate}>
+            <h2 className="modal-title">{editingSkill ? "Edit Skill" : "Add Skill"}</h2>
+            <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label className="form-label">Skill Name</label>
                 <input
@@ -143,12 +162,15 @@ export default function SkillsPage() {
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">Create</button>
+                <button type="submit" className="btn btn-primary">
+                  {editingSkill ? "Update" : "Create"}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
+ Riverside
 
       {toast && <div className={`toast ${toast.type}`}>{toast.msg}</div>}
     </>
