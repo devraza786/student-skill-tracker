@@ -11,99 +11,102 @@ router = APIRouter(
 
 @router.get("/students/{student_id}/average-proficiency")
 def get_student_average_proficiency(student_id: int):
-    if student_id not in database.students_db:
+    # Check student
+    check_s = database.supabase.table("students").select("id").eq("id", student_id).execute()
+    if not check_s.data:
         raise HTTPException(status_code=404, detail="Student not found")
     
-    if student_id not in database.student_skills_db or not database.student_skills_db[student_id]:
+    response = database.supabase.table("student_skills").select("proficiency_level").eq("student_id", student_id).execute()
+    
+    if not response.data:
         return {"student_id": student_id, "average_proficiency": 0.0}
     
-    skills = database.student_skills_db[student_id]
-    total_proficiency = sum(s["proficiency_level"] for s in skills.values())
-    avg = total_proficiency / len(skills)
+    total_proficiency = sum(s["proficiency_level"] for s in response.data)
+    avg = total_proficiency / len(response.data)
     
     return {"student_id": student_id, "average_proficiency": round(avg, 2)}
 
 @router.get("/top-students")
 def get_top_students():
-    # Top 3 students by average assessment score
-    student_scores = []
+    # Fetch all student skills joined with student names
+    response = database.supabase.table("student_skills").select("student_id, assessment_score, students(name)").execute()
     
-    for s_id, skills in database.student_skills_db.items():
-        if not skills:
-            continue
+    if not response.data:
+        return []
         
-        total_score = sum(s["assessment_score"] for s in skills.values())
-        avg_score = total_score / len(skills)
-        student_scores.append({"student_id": s_id, "average_score": avg_score})
+    student_scores = {}
+    for item in response.data:
+        s_id = item["student_id"]
+        if s_id not in student_scores:
+            student_scores[s_id] = {"total": 0, "count": 0, "name": item["students"]["name"]}
+        student_scores[s_id]["total"] += item["assessment_score"]
+        student_scores[s_id]["count"] += 1
     
-    # Sort by descending score
-    student_scores.sort(key=lambda x: x["average_score"], reverse=True)
-    
-    top_3 = student_scores[:3]
-    
-    # Hydrate with student names
-    result = []
-    for item in top_3:
-        if item["student_id"] in database.students_db:
-            student = database.students_db[item["student_id"]]
-            result.append({
-                "student_id": item["student_id"],
-                "name": student["name"],
-                "average_score": round(item["average_score"], 2)
-            })
-            
-    return result
+    results = []
+    for s_id, data in student_scores.items():
+        results.append({
+            "student_id": s_id,
+            "name": data["name"],
+            "average_score": round(data["total"] / data["count"], 2)
+        })
+        
+    # Sort and take top 3
+    results.sort(key=lambda x: x["average_score"], reverse=True)
+    return results[:3]
 
 @router.get("/most-popular-skill")
 def get_most_popular_skill():
-    # Skill assigned to most students
-    skill_counts = Counter()
+    # Count occurrences of each skill_id in student_skills
+    response = database.supabase.table("student_skills").select("skill_id, skills(name, category)").execute()
     
-    for skills in database.student_skills_db.values():
-        skill_counts.update(skills.keys())
-        
-    if not skill_counts:
+    if not response.data:
         return {"message": "No skills assigned yet"}
         
+    skill_counts = Counter(item["skill_id"] for item in response.data)
     most_common = skill_counts.most_common(1)
+    
     if not most_common:
-         return {"message": "No skills assigned yet"}
-         
+        return {"message": "No skills assigned yet"}
+        
     skill_id, count = most_common[0]
     
-    if skill_id in database.skills_db:
-        skill = database.skills_db[skill_id]
-        return {
-            "skill_id": skill_id,
-            "name": skill["name"],
-            "category": skill["category"],
-            "student_count": count
-        }
-    return {"skill_id": skill_id, "student_count": count, "message": "Skill details not found"} # Should not happen
+    # Get skill details from the first item found with this ID
+    skill_details = next(item for item in response.data if item["skill_id"] == skill_id)
+    
+    return {
+        "skill_id": skill_id,
+        "name": skill_details["skills"]["name"],
+        "category": skill_details["skills"]["category"],
+        "student_count": count
+    }
 
 @router.get("/job-ready-students")
 def get_job_ready_students():
     # At least 3 skills
     # Average assessment score > 75
+    response = database.supabase.table("student_skills").select("student_id, assessment_score, students(name, email)").execute()
     
-    job_ready = []
-    
-    for s_id, skills in database.student_skills_db.items():
-        if len(skills) < 3:
-            continue
-            
-        total_score = sum(s["assessment_score"] for s in skills.values())
-        avg_score = total_score / len(skills)
+    if not response.data:
+        return []
         
-        if avg_score > 75:
-             if s_id in database.students_db:
-                student = database.students_db[s_id]
-                job_ready.append({
-                   "student_id": s_id,
-                   "name": student["name"],
-                   "email": student["email"],
-                   "skill_count": len(skills),
-                   "average_score": round(avg_score, 2)
-                })
-                
+    student_stats = {}
+    for item in response.data:
+        s_id = item["student_id"]
+        if s_id not in student_stats:
+            student_stats[s_id] = {"total": 0, "count": 0, "name": item["students"]["name"], "email": item["students"]["email"]}
+        student_stats[s_id]["total"] += item["assessment_score"]
+        student_stats[s_id]["count"] += 1
+        
+    job_ready = []
+    for s_id, data in student_stats.items():
+        avg_score = data["total"] / data["count"]
+        if data["count"] >= 3 and avg_score > 75:
+            job_ready.append({
+                "student_id": s_id,
+                "name": data["name"],
+                "email": data["email"],
+                "skill_count": data["count"],
+                "average_score": round(avg_score, 2)
+            })
+            
     return job_ready

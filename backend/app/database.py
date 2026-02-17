@@ -1,15 +1,9 @@
-from typing import Dict, List
+import os
+from dotenv import load_dotenv
+from supabase import create_client, Client
 
-# In-memory storage
-# Students: id -> Student data
-students_db: Dict[int, Dict] = {}
+load_dotenv()
 
-# Skills: id -> Skill data
-skills_db: Dict[int, Dict] = {}
-
-# Student Skills: student_id -> {skill_id -> alignment data}
-student_skills_db: Dict[int, Dict[int, Dict]] = {}
-
-# Counters for auto-incrementing IDs
-student_id_counter = 1
-skill_id_counter = 1
+url: str = os.environ.get("SUPABASE_URL")
+key: str = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(url, key)
