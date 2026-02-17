@@ -13,10 +13,12 @@ app.add_middleware(
     allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(students.router)
 app.include_router(skills.router)
 app.include_router(analytics.router)
- Riverside
 
 @app.get("/")
 def read_root():
